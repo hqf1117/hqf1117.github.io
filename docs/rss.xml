@@ -1,5 +1,14 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>天魂魔蝎</title><link>https://hqf1117.github.io</link><description>主人很懒，什么都没有写～</description><copyright>天魂魔蝎</copyright><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://github.githubassets.com/favicons/favicon.svg</url><title>avatar</title><link>https://hqf1117.github.io</link></image><lastBuildDate>Wed, 26 Jun 2024 07:06:02 +0000</lastBuildDate><managingEditor>天魂魔蝎</managingEditor><ttl>60</ttl><webMaster>天魂魔蝎</webMaster><item><title>ThreadLocal</title><link>https://hqf1117.github.io/post/ThreadLocal.html</link><description>##  ThreadLocal用法&#13;
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>天魂魔蝎</title><link>https://hqf1117.github.io</link><description>主人很懒，什么都没有写～</description><copyright>天魂魔蝎</copyright><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://github.githubassets.com/favicons/favicon.svg</url><title>avatar</title><link>https://hqf1117.github.io</link></image><lastBuildDate>Wed, 26 Jun 2024 09:05:37 +0000</lastBuildDate><managingEditor>天魂魔蝎</managingEditor><ttl>60</ttl><webMaster>天魂魔蝎</webMaster><item><title>CPU多核并发缓存架构解析</title><link>https://hqf1117.github.io/post/CPU-duo-he-bing-fa-huan-cun-jia-gou-jie-xi.html</link><description>## cpu缓存架构图&#13;
+&#13;
+![image-20220517203818178](https://github.com/hqf1117/hqf1117.github.io/assets/30412361/9cccbc17-f6fa-4ccc-85bf-1b55e47051b8)&#13;
+![image-20220517204033606](https://github.com/hqf1117/hqf1117.github.io/assets/30412361/2b37633f-0511-48dd-884b-d60d7ac2d2e6)&#13;
+![image-20220517204502377](https://github.com/hqf1117/hqf1117.github.io/assets/30412361/b8dd8954-df7f-46e2-9ed4-64b4440d6062)&#13;
+![image-20220517204928094](https://github.com/hqf1117/hqf1117.github.io/assets/30412361/e2d48838-9b79-490b-86c0-462327416813)&#13;
+&#13;
+&#13;
+&#13;
+​		由于，工作内存的载入是以64kB为单位的，所以可能会连带载入不需要的缓存数据，此时可能发生其他CPU的线程修改这部分数据时，会发生频繁的失效刷新机制，影响cpu执行性能，这种情况叫==伪共享==。</description><guid isPermaLink="true">https://hqf1117.github.io/post/CPU-duo-he-bing-fa-huan-cun-jia-gou-jie-xi.html</guid><pubDate>Wed, 26 Jun 2024 09:05:10 +0000</pubDate></item><item><title>ThreadLocal</title><link>https://hqf1117.github.io/post/ThreadLocal.html</link><description>##  ThreadLocal用法&#13;
 &#13;
 ThreadLocal初始化：&#13;
 &#13;
