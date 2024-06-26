@@ -9,9 +9,7 @@
         let theme = localStorage.getItem("meek_theme") || "light";
         document.documentElement.setAttribute("data-color-mode", theme);
     </script>
-<meta name="description" content="# ThreadLocal线程局部变量
-
-##  ThreadLocal用法
+<meta name="description" content="##  ThreadLocal用法
 
 ThreadLocal初始化：
 
@@ -28,9 +26,7 @@ ThreadLocal<Integer> init = ThreadLocal.withInitial(()->0);
 
  ThreadLocalMap为k-v键值对，以ThreadLocal为key，为弱引用。">
 <meta property="og:title" content="ThreadLocal">
-<meta property="og:description" content="# ThreadLocal线程局部变量
-
-##  ThreadLocal用法
+<meta property="og:description" content="##  ThreadLocal用法
 
 ThreadLocal初始化：
 
@@ -104,8 +100,7 @@ body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;
 </div>
 </div>
     <div id="content">
-<div class="markdown-body" id="postBody"><h1>ThreadLocal线程局部变量</h1>
-<h2>ThreadLocal用法</h2>
+<div class="markdown-body" id="postBody"><h2>ThreadLocal用法</h2>
 <p>ThreadLocal初始化：</p>
 <div class="highlight highlight-source-java"><pre class="notranslate"><span class="pl-smi">ThreadLocal</span>&lt;<span class="pl-smi">Integer</span>&gt; <span class="pl-s1">init</span> = <span class="pl-smi">ThreadLocal</span>.<span class="pl-en">withInitial</span>(()-&gt;<span class="pl-c1">0</span>);</pre></div>
 <h2>源码分析</h2>

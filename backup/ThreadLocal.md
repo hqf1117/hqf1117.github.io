@@ -1,5 +1,3 @@
-# ThreadLocal线程局部变量
-
 ##  ThreadLocal用法
 
 ThreadLocal初始化：
