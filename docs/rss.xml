@@ -1,5 +1,10 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>天魂魔蝎</title><link>https://hqf1117.github.io</link><description>主人很懒，什么都没有写～</description><copyright>天魂魔蝎</copyright><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://github.githubassets.com/favicons/favicon.svg</url><title>avatar</title><link>https://hqf1117.github.io</link></image><lastBuildDate>Wed, 26 Jun 2024 16:18:06 +0000</lastBuildDate><managingEditor>天魂魔蝎</managingEditor><ttl>60</ttl><webMaster>天魂魔蝎</webMaster><item><title>CPU多核并发缓存架构解析</title><link>https://hqf1117.github.io/post/CPU-duo-he-bing-fa-huan-cun-jia-gou-jie-xi.html</link><description>## cpu缓存架构图&#13;
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel><title>天魂魔蝎</title><link>https://hqf1117.github.io</link><description>主人很懒，什么都没有写～</description><copyright>天魂魔蝎</copyright><docs>http://www.rssboard.org/rss-specification</docs><generator>python-feedgen</generator><image><url>https://github.githubassets.com/favicons/favicon.svg</url><title>avatar</title><link>https://hqf1117.github.io</link></image><lastBuildDate>Thu, 27 Jun 2024 02:31:00 +0000</lastBuildDate><managingEditor>天魂魔蝎</managingEditor><ttl>60</ttl><webMaster>天魂魔蝎</webMaster><item><title>Mybatis</title><link>https://hqf1117.github.io/post/Mybatis.html</link><description>## 总体设计&#13;
+&#13;
+![image-20230326222655988](https://github.com/hqf1117/hqf1117.github.io/assets/30412361/7b704f13-d723-400c-bccf-c8477bebd1dc)&#13;
+&#13;
+&#13;
+通过SqlSession.getMapper(XXXMapper.class)方法，MyBatis 会根据相应的接口声明的方法信息，通过动态代理机制生成一个Mapper 实例。</description><guid isPermaLink="true">https://hqf1117.github.io/post/Mybatis.html</guid><pubDate>Thu, 27 Jun 2024 02:30:33 +0000</pubDate></item><item><title>CPU多核并发缓存架构解析</title><link>https://hqf1117.github.io/post/CPU-duo-he-bing-fa-huan-cun-jia-gou-jie-xi.html</link><description>## cpu缓存架构图&#13;
 &#13;
 ![image-20220517203818178](https://github.com/hqf1117/hqf1117.github.io/assets/30412361/9cccbc17-f6fa-4ccc-85bf-1b55e47051b8)&#13;
 ![image-20220517204033606](https://github.com/hqf1117/hqf1117.github.io/assets/30412361/2b37633f-0511-48dd-884b-d60d7ac2d2e6)&#13;
