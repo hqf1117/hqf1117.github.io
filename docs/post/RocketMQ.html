@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html data-color-mode="light" data-dark-theme="dark" data-light-theme="light" lang="zh-CN">
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link href="//cdn.staticfile.net/Primer/21.0.7/primer.css" rel="stylesheet" />
+    <link rel="icon" href="https://github.githubassets.com/favicons/favicon.svg"><script>
+        let theme = localStorage.getItem("meek_theme") || "light";
+        document.documentElement.setAttribute("data-color-mode", theme);
+    </script>
+<meta name="description" content="## 基本概念
+
+- message
+
+- topic 
+
+- tag
+
+- queue
+
+- 消息表示 messageId/Key 
+
+  每个消息拥有唯一的messageId，且可以携带具有业务表示的Key，以方便对消息的查询。">
+<meta property="og:title" content="RocketMQ">
+<meta property="og:description" content="## 基本概念
+
+- message
+
+- topic 
+
+- tag
+
+- queue
+
+- 消息表示 messageId/Key 
+
+  每个消息拥有唯一的messageId，且可以携带具有业务表示的Key，以方便对消息的查询。">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://hqf1117.github.io/post/RocketMQ.html">
+<meta property="og:image" content="https://github.githubassets.com/favicons/favicon.svg">
+<title>RocketMQ</title>
+<link href="//unpkg.com/@wooorm/starry-night@2.1.1/style/both.css" rel="stylesheet" />
+
+</head>
+<style>
+body{box-sizing: border-box;min-width: 200px;max-width: 900px;margin: 20px auto;padding: 45px;font-size: 16px;font-family: sans-serif;line-height: 1.25;}
+#header{display:flex;padding-bottom:8px;border-bottom: 1px solid var(--borderColor-muted, var(--color-border-muted));margin-bottom: 16px;}
+#footer {margin-top:64px; text-align: center;font-size: small;}
+
+</style>
+
+<style>
+.postTitle{margin: auto 0;font-size:40px;font-weight:bold;}
+.title-right{display:flex;margin:auto 0 0 auto;}
+.title-right .circle{padding: 14px 16px;margin-right:8px;}
+#postBody{border-bottom: 1px solid var(--color-border-default);padding-bottom:36px;}
+#postBody hr{height:2px;}
+#cmButton{height:48px;margin-top:48px;}
+#comments{margin-top:64px;}
+.g-emoji{font-size:24px;}
+@media (max-width: 600px) {
+    body {padding: 8px;}
+    .postTitle{font-size:24px;}
+}
+</style>
+
+
+
+
+<body>
+    <div id="header">
+<h1 class="postTitle">RocketMQ</h1>
+<div class="title-right">
+    <a href="https://hqf1117.github.io" id="buttonHome" class="btn btn-invisible circle" title="首页">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathHome" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+    <a href="https://github.com/hqf1117/hqf1117.github.io/issues/7" target="_blank" class="btn btn-invisible circle" title="Issue">
+        <svg class="octicon" width="16" height="16">
+            <path id="pathIssue" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+    
+
+    <a class="btn btn-invisible circle" onclick="modeSwitch();" title="切换主题">
+        <svg class="octicon" width="16" height="16" >
+            <path id="themeSwitch" fill-rule="evenodd"></path>
+        </svg>
+    </a>
+
+</div>
+</div>
+    <div id="content">
+<div class="markdown-body" id="postBody"><h2>基本概念</h2>
+<ul>
+<li>
+<p>message</p>
+</li>
+<li>
+<p>topic</p>
+</li>
+<li>
+<p>tag</p>
+</li>
+<li>
+<p>queue</p>
+</li>
+<li>
+<p>消息表示 messageId/Key</p>
+<p>每个消息拥有唯一的messageId，且可以携带具有业务表示的Key，以方便对消息的查询。</p>
+<p>生产者send时会生成msgId，到达broker也会生成一个offsetMsgId。</p>
+<ul>
+<li>msgId：$\color{#FF0000}{producerId + 进程pid + MessageClientIDSetter类的ClassLoader的hashcode + 当前时间+AutomicInteger自增计数器}$</li>
+<li>offsetMsgId：$\color{#FF0000}{brokerIP + 物理分区的offset}$</li>
+<li>key: 由用户指定的业务相关的唯一标识</li>
+</ul>
+</li>
+</ul>
+<h2>角色架构</h2>
+<p><a target="_blank" rel="noopener noreferrer" href="https://github.com/hqf1117/hqf1117.github.io/assets/30412361/ae2c59dc-3f23-4436-9432-b9fad00609e0"><img src="https://github.com/hqf1117/hqf1117.github.io/assets/30412361/ae2c59dc-3f23-4436-9432-b9fad00609e0" alt="image-20220602142400414" style="max-width: 100%;"></a></p>
+<h3>NameServer、Broker与Topic路由的注册中心</h3>
+<p>broker节点以长连接的方式与每一个nameServer节点建立通信，每30秒定时发送心跳包。$\color{#FF0000}{心跳包内容包含当前broker信息(IP+端口等)以及存储所有topic信息}$</p>
+<p>nameserver中有一个定时任务每10秒扫描一次broker心跳数据，心跳最新时间戳超过120秒则判定broker失效，将broker列表中剔除。</p>
+<p>客户端先采用==随机==的策略选择nameserver，连接失败再采用==轮询==的方式，只需跟一台broker建立长连接即可。</p>
+<p><a target="_blank" rel="noopener noreferrer" href="https://github.com/hqf1117/hqf1117.github.io/assets/30412361/1d88bfd5-4b24-4e44-96e8-1ccd6b9e39d8"><img width="848" alt="image-20220922104925782" src="https://github.com/hqf1117/hqf1117.github.io/assets/30412361/1d88bfd5-4b24-4e44-96e8-1ccd6b9e39d8" style="max-width: 100%;"></a></p>
+<ul>
+<li>remoting module:整个broker的实体，负责处理来自clients端的请求。而这个broker实体由以下模块构成
+<ul>
+<li>Client manager：客户端管理器，负责接收解析producer和consumer的请求，管理客户端。如维护订阅信息等。</li>
+<li>Store service：存储服务。提供方便简单的api接口，处理==消息持久化==和==消息查询==功能。</li>
+<li>Ha service：高可用服务。提供主从broker之间的数据同步功能。</li>
+<li>Index service：索引服务。根据特定的message key，对投递的broker的消息进行索引服务，以及快速查询。</li>
+</ul>
+</li>
+</ul>
+<p>producer发送消息的流程：启动时先跟nameserver集群中的一台建立长连接，来获取broker的路由信息缓存在本地，每30秒更新一次路由信息。然后根据算法策略选择一个queue，与queue所在broker建立长连接，来发送message。</p>
+<p>consumer消费流程类似，额外多一个心跳连接确保broker存活。</p>
+<h2>ACL权限</h2>
+<p>plain_acl.yml文件</p>
+<p><a target="_blank" rel="noopener noreferrer" href="https://github.com/hqf1117/hqf1117.github.io/assets/30412361/5e0b5fcc-0d41-4d79-9636-937758eb1a91"><img width="381" alt="image-20221028235246156" src="https://github.com/hqf1117/hqf1117.github.io/assets/30412361/5e0b5fcc-0d41-4d79-9636-937758eb1a91" style="max-width: 100%;"></a></p>
+<h2>控制台工具rocketmq-externals</h2>
+<h2>消息消费模式</h2>
+<p>实际上都是pull的形式，但是利用长轮询来达到push模式的效果。</p>
+<p><a target="_blank" rel="noopener noreferrer" href="https://github.com/hqf1117/hqf1117.github.io/assets/30412361/5656a435-d91f-4e4d-ae0a-517159f2ab86"><img src="https://github.com/hqf1117/hqf1117.github.io/assets/30412361/5656a435-d91f-4e4d-ae0a-517159f2ab86" alt="image-20220602151048714" style="max-width: 100%;"></a></p>
+<h2>消息类型</h2>
+<h3>顺序消息</h3>
+<p>可以按照FIFO的模式来保证消息有序。可以是全局有序或分区有序。全局有序只是把消息发送消费全部依靠同一个broker而已。</p>
+<h3>延迟消息</h3>
+<p>开源版本是预设的18个级别：1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h。可以在配置文件中修改。</p>
+<p>商业版可以随意指定延迟的时间。</p>
+<h3>批量消息</h3>
+<h3>过滤消息</h3>
+<p>可以根据Tags或者sql92的语法进行过滤消费对应的消息。==只有push模式下才可以使用过滤条件==。</p>
+<h3>事务消息</h3>
+<p>流程图</p>
+<p><a target="_blank" rel="noopener noreferrer" href="https://github.com/hqf1117/hqf1117.github.io/assets/30412361/5513830c-4dc6-47cb-a4aa-34f77df1f3dc"><img width="707" alt="image-20221028233843871" src="https://github.com/hqf1117/hqf1117.github.io/assets/30412361/5513830c-4dc6-47cb-a4aa-34f77df1f3dc" style="max-width: 100%;"></a></p>
+<p>直到接收COMMIT的信号以后，事务消息才能被consumer接收到并且消费。定时回查次数为15次。</p>
+<h3>消息轨迹</h3>
+<p>有一个默认的topic，RMQ_SYS_TRACE_TOPIC，用来记录消息的链路信息。也可以自己指定一个topic来记录。</p>
+<h2>stream流计算</h2>
+<div class="highlight highlight-text-xml"><pre class="notranslate">&lt;<span class="pl-ent">dependency</span>&gt;
+  &lt;<span class="pl-ent">groupId</span>&gt;com.alibaba.cloud&lt;/<span class="pl-ent">groupId</span>&gt;
+  &lt;<span class="pl-ent">artifactId</span>&gt;spring-cloud-starter-stream-rocketmq&lt;/<span class="pl-ent">artifactId</span>&gt;
+&lt;/<span class="pl-ent">dependency</span>&gt;</pre></div>
+<h2>高级特性</h2>
+<h3>消息存储</h3>
+<ol>
+<li>MQ收到一条消息后，需要向生产者返回一个ACK响应，并将消息存储起来。</li>
+<li>MQ Push一条消息给消费者后，等待消费者的ACK的响应，需要将消息标记为已消费。如果没有标记为消费，MQ会不断尝试往消费者推送这条消息。</li>
+<li>MQ需要定期删除一些过期的消息。默认保存3天，超过3天的message会被删除。</li>
+</ol>
+<h4>提高存储性能</h4>
+<ul>
+<li>
+<p>顺序写：提前申请一块连续的磁盘空间，然后顺序写入消息。</p>
+</li>
+<li>
+<p>异步或同步刷盘：flushDiskType 配置项更改</p>
+<a target="_blank" rel="noopener noreferrer" href="https://github.com/hqf1117/hqf1117.github.io/assets/30412361/edd0e5d4-645f-40f0-bf7c-86623932b865"><img width="397" alt="image-20221031190541650" src="https://github.com/hqf1117/hqf1117.github.io/assets/30412361/edd0e5d4-645f-40f0-bf7c-86623932b865" style="max-width: 100%;"></a>
+</li>
+<li>
+<p>零拷贝： MMap的方式进行零拷贝，文件限制大小为1.5-&gt;2G</p>
+</li>
+</ul>
+<h4>存储结构</h4>
+<ul>
+<li>CommitLog：所有消息会顺序存入到CommitLog中，每个固定大小1G。以第一条消息的偏移量为文件名。</li>
+<li>ConsumerQueue：一个MessageQueue一个文件，记录当前被哪些消费者组消费到了哪一条。</li>
+<li>IndexFile：为了查询消息方便并且不影响主流程的索引文件。</li>
+</ul>
+<p><a target="_blank" rel="noopener noreferrer" href="https://github.com/hqf1117/hqf1117.github.io/assets/30412361/a0dcdf55-e847-4038-b412-df9d541766dd"><img width="387" alt="image-20221031104842833" src="https://github.com/hqf1117/hqf1117.github.io/assets/30412361/a0dcdf55-e847-4038-b412-df9d541766dd" style="max-width: 100%;"></a></p>
+<h4>消息主从复制</h4>
+<p>同样存在同步和异步两种方式。</p>
+<h3>消息消费</h3>
+<p>RocketMQ是支持一个消费者订阅多个topic，==需要保证组内的消费者订阅的topic都必须一致==，否则就会出现订阅的topic被覆盖的情况。</p>
+<p>messageQueue在clustering模式下只能被同一组中的其中一个consumer消费。所以需要配置相应的分配策略。</p>
+<h3>消息重试</h3>
+<p>当broker发送message给consumer消费，但是没有收到返回消息时，将会启动消息重试机制。</p>
+<p>broker会自动创建（%RETRY%消费者组名）的重试队列。</p>
+<p><a target="_blank" rel="noopener noreferrer" href="https://github.com/hqf1117/hqf1117.github.io/assets/30412361/b66274ae-7cd2-4955-9337-910f36b6a7d1"><img width="419" alt="image-20221031224729597" src="https://github.com/hqf1117/hqf1117.github.io/assets/30412361/b66274ae-7cd2-4955-9337-910f36b6a7d1" style="max-width: 100%;"></a></p>
+<p>默认是16次，可以配置更多，统一为2小时的间隔。</p>
+<h3>死信队列</h3>
+<p>消息重试超过设置的次数，仍然失败的状态下，转为死信队列。</p>
+<p>%DLQ%消费者组名</p>
+<p>默认权限是2，无法发送也无法读取。需要手动修改权限以后才能操作数据。</p>
+<h3>消息幂等</h3>
+<ul>
+<li>At most once</li>
+<li>At least once</li>
+<li>Exactly once:仅商业版支持</li>
+</ul>
+<p>如何处理？</p>
+<p>建议传递key属性作为唯一标识来保证消息幂等性。</p></div>
+<div style="font-size:small;margin-top:8px;float:right;"></div>
+<button class="btn btn-block" type="button" onclick="openComments()" id="cmButton">评论</button>
+<div class="comments" id="comments"></div>
+</div>
+    <div id="footer">Copyright © <span id="year"></span><a href="https://hqf1117.github.io"> 天魂魔蝎 </a>
+<p>
+<span id="runday"></span>Powered by <a href="https://meekdai.com/Gmeek.html" target="_blank">Gmeek</a>
+</p>
+
+<script>
+if(""!=""){
+    var now=new Date();
+    var startSite=new Date("");
+    var diff=now.getTime()-startSite.getTime();
+    var diffDay=Math.floor(diff/(1000*60*60*24));
+    document.getElementById("year").innerHTML=now.getFullYear();
+    if(""!=""){document.getElementById("runday").innerHTML=" • "+"网站运行"+diffDay+"天"+" • ";}
+    else{document.getElementById("runday").innerHTML="网站运行"+diffDay+"天"+" • ";}
+}
+</script>
+</div>
+</body>
+<script>
+var IconList={'sun': 'M8 10.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0V.75A.75.75 0 018 0zm0 13a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 018 13zM2.343 2.343a.75.75 0 011.061 0l1.06 1.061a.75.75 0 01-1.06 1.06l-1.06-1.06a.75.75 0 010-1.06zm9.193 9.193a.75.75 0 011.06 0l1.061 1.06a.75.75 0 01-1.06 1.061l-1.061-1.06a.75.75 0 010-1.061zM16 8a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5A.75.75 0 0116 8zM3 8a.75.75 0 01-.75.75H.75a.75.75 0 010-1.5h1.5A.75.75 0 013 8zm10.657-5.657a.75.75 0 010 1.061l-1.061 1.06a.75.75 0 11-1.06-1.06l1.06-1.06a.75.75 0 011.06 0zm-9.193 9.193a.75.75 0 010 1.06l-1.06 1.061a.75.75 0 11-1.061-1.06l1.06-1.061a.75.75 0 011.061 0z', 'moon': 'M9.598 1.591a.75.75 0 01.785-.175 7 7 0 11-8.967 8.967.75.75 0 01.961-.96 5.5 5.5 0 007.046-7.046.75.75 0 01.175-.786zm1.616 1.945a7 7 0 01-7.678 7.678 5.5 5.5 0 107.678-7.678z', 'sync': 'M1.705 8.005a.75.75 0 0 1 .834.656 5.5 5.5 0 0 0 9.592 2.97l-1.204-1.204a.25.25 0 0 1 .177-.427h3.646a.25.25 0 0 1 .25.25v3.646a.25.25 0 0 1-.427.177l-1.38-1.38A7.002 7.002 0 0 1 1.05 8.84a.75.75 0 0 1 .656-.834ZM8 2.5a5.487 5.487 0 0 0-4.131 1.869l1.204 1.204A.25.25 0 0 1 4.896 6H1.25A.25.25 0 0 1 1 5.75V2.104a.25.25 0 0 1 .427-.177l1.38 1.38A7.002 7.002 0 0 1 14.95 7.16a.75.75 0 0 1-1.49.178A5.5 5.5 0 0 0 8 2.5Z', 'home': 'M6.906.664a1.749 1.749 0 0 1 2.187 0l5.25 4.2c.415.332.657.835.657 1.367v7.019A1.75 1.75 0 0 1 13.25 15h-3.5a.75.75 0 0 1-.75-.75V9H7v5.25a.75.75 0 0 1-.75.75h-3.5A1.75 1.75 0 0 1 1 13.25V6.23c0-.531.242-1.034.657-1.366l5.25-4.2Zm1.25 1.171a.25.25 0 0 0-.312 0l-5.25 4.2a.25.25 0 0 0-.094.196v7.019c0 .138.112.25.25.25H5.5V8.25a.75.75 0 0 1 .75-.75h3.5a.75.75 0 0 1 .75.75v5.25h2.75a.25.25 0 0 0 .25-.25V6.23a.25.25 0 0 0-.094-.195Z', 'github': 'M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z'};
+var utterancesLoad=0;
+
+let themeSettings={
+    "dark": ["dark","moon","#00f0ff","dark-blue"],
+    "light": ["light","sun","#ff5000","github-light"],
+    "auto": ["auto","sync","","preferred-color-scheme"]
+};
+function changeTheme(mode, icon, color, utheme){
+    document.documentElement.setAttribute("data-color-mode",mode);
+    document.getElementById("themeSwitch").setAttribute("d",value=IconList[icon]);
+    document.getElementById("themeSwitch").parentNode.style.color=color;
+    if(utterancesLoad==1){utterancesTheme(utheme);}
+}
+function modeSwitch(){
+    let currentMode=document.documentElement.getAttribute('data-color-mode');
+    let newMode = currentMode === "light" ? "dark" : currentMode === "dark" ? "auto" : "light";
+    localStorage.setItem("meek_theme", newMode);
+    if(themeSettings[newMode]){
+        changeTheme(...themeSettings[newMode]);
+    }
+}
+function utterancesTheme(theme){
+    const message={type:'set-theme',theme: theme};
+    const iframe=document.getElementsByClassName('utterances-frame')[0];
+    iframe.contentWindow.postMessage(message,'https://utteranc.es');
+}
+if(themeSettings[theme]){changeTheme(...themeSettings[theme]);}
+console.log("\n %c Gmeek last https://github.com/Meekdai/Gmeek \n\n","padding:5px 0;background:#02d81d;color:#fff");
+</script>
+
+<script>
+document.getElementById("pathHome").setAttribute("d",IconList["home"]);
+document.getElementById("pathIssue").setAttribute("d",IconList["github"]);
+
+function openComments(){
+    cm=document.getElementById("comments");
+    cmButton=document.getElementById("cmButton");
+    cmButton.innerHTML="loading";
+    span=document.createElement("span");
+    span.setAttribute("class","AnimatedEllipsis");
+    cmButton.appendChild(span);
+
+    script=document.createElement("script");
+    script.setAttribute("src","https://utteranc.es/client.js");
+    script.setAttribute("repo","hqf1117/hqf1117.github.io");
+    script.setAttribute("issue-term","title");
+    
+    if(localStorage.getItem("meek_theme")=="dark"){script.setAttribute("theme","dark-blue");}
+    else if(localStorage.getItem("meek_theme")=="light") {script.setAttribute("theme","github-light");}
+    else{script.setAttribute("theme","preferred-color-scheme");}
+    
+    script.setAttribute("crossorigin","anonymous");
+    script.setAttribute("async","");
+    cm.appendChild(script);
+
+    int=self.setInterval("iFrameLoading()",200);
+}
+
+function iFrameLoading(){
+    var utterances=document.getElementsByClassName('utterances');
+    if(utterances.length==1){
+        if(utterances[0].style.height!=""){
+            utterancesLoad=1;
+            int=window.clearInterval(int);
+            document.getElementById("cmButton").style.display="none";
+            console.log("utterances Load OK");
+        }
+    }
+}
+</script>
+
+
+</html>
